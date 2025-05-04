@@ -44,6 +44,10 @@ module "ubuntu_vm_key_auth" {
   network_security_group_id   = azurerm_network_security_group.public.id
 }
 
+#################################################################################################################
+# NAT GATEWAY PUBLIC IP
+#################################################################################################################
+
 resource "azurerm_public_ip" "nat_pip" {
   name                = "nat-ip"
   location            = var.location
@@ -52,6 +56,14 @@ resource "azurerm_public_ip" "nat_pip" {
   sku                 = "Standard"
 }
 
+resource "azurerm_nat_gateway_public_ip_association" "nat_gw_pip_association" {
+  nat_gateway_id       = azurerm_nat_gateway.nat.id
+  public_ip_address_id = azurerm_public_ip.nat_pip.id
+}
+
+#################################################################################################################
+# NAT GATEWAY
+#################################################################################################################
 resource "azurerm_nat_gateway" "nat" {
   name                = "devops-nat-gateway-${var.prefix}"
   location            = var.location
@@ -59,16 +71,14 @@ resource "azurerm_nat_gateway" "nat" {
   sku_name            = "Standard"
 }
 
-resource "azurerm_subnet_nat_gateway_association" "nat_association" {
+resource "azurerm_subnet_nat_gateway_association" "nat_internal_subnet_association" {
   subnet_id      = azurerm_subnet.internal.id
   nat_gateway_id = azurerm_nat_gateway.nat.id
 }
 
-resource "azurerm_nat_gateway_public_ip_association" "example" {
-  nat_gateway_id       = azurerm_nat_gateway.nat.id
-  public_ip_address_id = azurerm_public_ip.nat_pip.id
-}
-
+#################################################################################################################
+# BASTION
+#################################################################################################################
 resource "azurerm_subnet" "bastion_snet" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.public.name
@@ -84,7 +94,7 @@ resource "azurerm_public_ip" "bastion_pip" {
   sku                 = "Standard"
 }
 
-resource "azurerm_bastion_host" "example" {
+resource "azurerm_bastion_host" "public" {
   name                = "bastion-${var.prefix}"
   copy_paste_enabled  = true
   file_copy_enabled   = true
@@ -93,7 +103,7 @@ resource "azurerm_bastion_host" "example" {
   sku                 = "Standard"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "bastion-ipc-${var.prefix}"
     subnet_id            = azurerm_subnet.bastion_snet.id
     public_ip_address_id = azurerm_public_ip.bastion_pip.id
   }

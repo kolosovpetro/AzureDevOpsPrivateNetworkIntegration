@@ -4,16 +4,36 @@ resource "azurerm_network_security_group" "public" {
   resource_group_name = azurerm_resource_group.public.name
 }
 
-resource "azurerm_network_security_rule" "allow_ssh" {
-  name                    = "AllowAzureDevOpsOutbound"
-  priority                = 100
-  direction               = "Outbound"
-  access                  = "Allow"
-  protocol                = "Tcp"
-  source_port_range       = "*"
-  destination_port_ranges = ["443"]
-  source_address_prefix   = "*"
-  destination_address_prefixes = [
+resource "azurerm_network_security_rule" "allow_azure_resources" {
+  name                         = "AllowAzureResourcesOutbound"
+  priority                     = 100
+  direction                    = "Outbound"
+  access                       = "Allow"
+  protocol                     = "Tcp"
+  source_port_range            = "*"
+  destination_port_ranges      = ["443"]
+  source_address_prefix        = "*"
+  destination_address_prefixes = local.azure_resources_cidr
+  resource_group_name          = azurerm_resource_group.public.name
+  network_security_group_name  = azurerm_network_security_group.public.name
+}
+
+resource "azurerm_network_security_rule" "deny_all_outbound" {
+  name                        = "DenyAllOutbound"
+  priority                    = 200
+  direction                   = "Outbound"
+  access                      = "Deny"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "Internet"
+  resource_group_name         = azurerm_resource_group.public.name
+  network_security_group_name = azurerm_network_security_group.public.name
+}
+
+locals {
+  azure_resources_cidr = [
     # azure devops cidr
     "20.37.158.0/23",
     "20.37.194.0/24",
@@ -129,20 +149,4 @@ resource "azurerm_network_security_rule" "allow_ssh" {
     "191.233.9.112/29",
     "191.235.224.88/29"
   ]
-  resource_group_name         = azurerm_resource_group.public.name
-  network_security_group_name = azurerm_network_security_group.public.name
-}
-
-resource "azurerm_network_security_rule" "allow_http" {
-  name                        = "DenyAllOutbound"
-  priority                    = 200
-  direction                   = "Outbound"
-  access                      = "Deny"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_range      = "*"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "Internet"
-  resource_group_name         = azurerm_resource_group.public.name
-  network_security_group_name = azurerm_network_security_group.public.name
 }
