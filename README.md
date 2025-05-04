@@ -10,6 +10,9 @@ however this solution has its pros: agent installation requires to NAT to allow 
 are not really consistent, so that better solution is to utilize the Azure Firewall, which allows
 to filter traffic based on DNS records instead of CIDR blocks.
 
+With NAT approach agent installation requires allowing ALL outbound internet traffic to allow temporary,
+after agent is installed or updated only Azure DevOps services to be allowed outbound.
+
 NAT approach requires manual adjustments time to time.
 
 ## Docs
