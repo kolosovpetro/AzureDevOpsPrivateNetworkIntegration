@@ -48,11 +48,11 @@ resource "azurerm_network_security_rule" "deny_all_outbound" {
 
 locals {
   azure_resources_cidr = [
-    "13.107.42.0/24",       # dev.azure.com
-    "13.107.6.0/24",        # vsblob.dev.azure.com
-    "13.107.9.0/24",        # artifacts
-    "52.239.192.0/19",      # Pipelines, agent pool endpoints
-    "168.63.129.16",         # Azure DNS / metadata
+    "13.107.42.0/24",  # dev.azure.com
+    "13.107.6.0/24",   # vsblob.dev.azure.com
+    "13.107.9.0/24",   # artifacts
+    "52.239.192.0/19", # Pipelines, agent pool endpoints
+    "168.63.129.16",   # Azure DNS / metadata
     # azure devops cidr from JSON
     "20.37.158.0/23",
     "20.37.194.0/24",
