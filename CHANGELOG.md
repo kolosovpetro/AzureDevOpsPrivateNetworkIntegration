@@ -13,3 +13,4 @@ and this project adheres to [Semantic Versioning v2.0.0](https://semver.org/spec
 - Configure Azure CIDRs using https://www.microsoft.com/en-us/download/details.aspx?id=56519
 - Configure bastion
 - Test connections
+- Update readme
