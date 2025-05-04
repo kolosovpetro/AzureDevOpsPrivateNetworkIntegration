@@ -43,3 +43,58 @@ module "ubuntu_vm_key_auth" {
   os_profile_admin_username   = "razumovsky_r"
   network_security_group_id   = azurerm_network_security_group.public.id
 }
+
+resource "azurerm_public_ip" "nat_pip" {
+  name                = "nat-ip"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.public.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_nat_gateway" "nat" {
+  name                = "devops-nat-gateway-${var.prefix}"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.public.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_subnet_nat_gateway_association" "nat_association" {
+  subnet_id      = azurerm_subnet.internal.id
+  nat_gateway_id = azurerm_nat_gateway.nat.id
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "example" {
+  nat_gateway_id       = azurerm_nat_gateway.nat.id
+  public_ip_address_id = azurerm_public_ip.nat_pip.id
+}
+
+resource "azurerm_subnet" "bastion_snet" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.public.name
+  virtual_network_name = azurerm_virtual_network.public.name
+  address_prefixes     = ["10.10.0.64/26"]
+}
+
+resource "azurerm_public_ip" "bastion_pip" {
+  name                = "bastion-pip-${var.prefix}"
+  location            = azurerm_resource_group.public.location
+  resource_group_name = azurerm_resource_group.public.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "example" {
+  name                = "bastion-${var.prefix}"
+  copy_paste_enabled  = true
+  file_copy_enabled   = true
+  location            = azurerm_resource_group.public.location
+  resource_group_name = azurerm_resource_group.public.name
+  sku                 = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.bastion_snet.id
+    public_ip_address_id = azurerm_public_ip.bastion_pip.id
+  }
+}
