@@ -6,7 +6,7 @@ Self-hosted agent on Azure virtual machine should not have any public IP associa
 queued jobs from Azure DevOps cloud instance.
 
 One of the solutions is to utilize Azure NAT gateway that allows to filter traffic based on CIDR blocks,
-however this solution has its pros: agent installation requires to NAT to allow Akamai CDN CIDRs which
+however this solution has its disadvantages: agent installation requires to NAT to allow Akamai CDN CIDRs which
 are not really consistent, so that better solution is to utilize the Azure Firewall, which allows
 to filter traffic based on DNS records instead of CIDR blocks.
 
