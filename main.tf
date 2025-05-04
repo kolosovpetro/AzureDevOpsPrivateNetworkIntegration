@@ -30,7 +30,7 @@ resource "azurerm_subnet" "internal" {
 #################################################################################################################
 
 module "ubuntu_vm_key_auth" {
-  source                      = "github.com/kolosovpetro/AzureLinuxVMTerraform.git//modules/ubuntu-vm-key-auth-no-pip?ref=AZ400-343"
+  source                      = "github.com/kolosovpetro/AzureLinuxVMTerraform.git//modules/ubuntu-vm-key-auth-no-pip?ref=master"
   resource_group_name         = azurerm_resource_group.public.name
   resource_group_location     = azurerm_resource_group.public.location
   subnet_id                   = azurerm_subnet.internal.id
