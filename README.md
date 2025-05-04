@@ -1,102 +1,23 @@
-# Terraform template
+# Azure DevOps Private Network Integration
 
-Terraform template for modules and submodules.
-Includes pre-commit hooks that lint the terraform code and generate module's
-documentation as part of README file.
-Contains examples of terraform CI/CD pipelines for GitHub Actions and Azure Pipelines.
+## The problem
 
-## Terraform Init
+Self-hosted agent on Azure virtual machine should not have any public IP associated, meanwhile be able to pull
+queued jobs from Azure DevOps cloud instance.
 
-- Create and configure Azure Storage Account for Terraform state
-- Create `azure.sas.conf` file with the following content:
-    ```bash
-    storage_account_name = "storage_account_name"
-    container_name       = "container_name"
-    key                  = "terraform.tfstate"
-    sas_token            = "sas_token"
-    ```
-- `terraform init -backend-config="azure.sas.conf" -reconfigure -upgrade`
+One of the solutions is to utilize Azure NAT gateway that allows to filter traffic based on CIDR blocks,
+however this solution has its disadvantages: agent installation requires to NAT to allow Akamai CDN CIDRs which
+are not really consistent, so that better solution is to utilize the Azure Firewall, which allows
+to filter traffic based on DNS records instead of CIDR blocks.
 
-## Module referencing
+With NAT approach agent installation requires allowing ALL outbound internet traffic to allow temporary,
+after agent is installed or updated only Azure DevOps services to be allowed outbound.
 
-- Bitbucket: `git::git@bitbucket.org:kolosovpetro/terraform.git//modules/storage`
-- Github: `git::git@github.com:kolosovpetro/terraform.git//modules/storage`
+NAT approach requires manual adjustments time to time.
 
-## Pre-commit configuration
+## Docs
 
-- Install python3 via Windows Store
-- `pip install --upgrade pip`
-- `pip install pre-commit`
-- Update PATH variable
-- `pre-commit install`
-
-### Install terraform docs
-
-- `choco install terraform-docs`
-
-### Install tflint
-
-- `choco install tflint`
-
-### Documentation
-
-- https://github.com/antonbabenko/pre-commit-terraform
-- https://github.com/kolosovpetro/AzureTerraformBackend
-- https://github.com/terraform-docs/terraform-docs
-- https://terraform-docs.io/user-guide/installation/
-- https://pre-commit.com/
-
-## Storage account configuration file
-
-  ```bash
-  storage_account_name = "storage_account_name"
-  container_name       = "container_name"
-  key                  = "terraform.tfstate"
-  sas_token            = "sas_token"
-  ```
-
-## Deploy storage account for terraform state
-
-- See [CreateAzureStorageAccount.ps1](./CreateAzureStorageAccount.ps1)
-
-# Module documentation
-
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-
-## Requirements
-
-| Name                                                                | Version |
-|---------------------------------------------------------------------|---------|
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | =3.71.0 |
-
-## Providers
-
-| Name                                                          | Version |
-|---------------------------------------------------------------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.71.0  |
-
-## Modules
-
-| Name                                                                             | Source                      | Version |
-|----------------------------------------------------------------------------------|-----------------------------|---------|
-| <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | ./modules/example_submodule | n/a     |
-
-## Resources
-
-| Name                                                                                                                              | Type        |
-|-----------------------------------------------------------------------------------------------------------------------------------|-------------|
-| [azurerm_resource_group.public](https://registry.terraform.io/providers/hashicorp/azurerm/3.71.0/docs/resources/resource_group)   | resource    |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/3.71.0/docs/data-sources/client_config) | data source |
-
-## Inputs
-
-| Name                                                                                                        | Description              | Type     | Default | Required |
-|-------------------------------------------------------------------------------------------------------------|--------------------------|----------|---------|:--------:|
-| <a name="input_prefix"></a> [prefix](#input\_prefix)                                                        | Prefix for all resources | `string` | n/a     |   yes    |
-| <a name="input_resource_group_location"></a> [resource\_group\_location](#input\_resource\_group\_location) | Resource group location  | `string` | n/a     |   yes    |
-| <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)             | Resource group name      | `string` | n/a     |   yes    |
-
-## Outputs
-
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+- https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/nat_gateway
+- Public cloud CIDRs: https://www.microsoft.com/en-us/download/details.aspx?id=56519
+- https://github.com/microsoft/azure-pipelines-agent/releases
