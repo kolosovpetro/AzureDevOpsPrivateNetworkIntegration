@@ -11,7 +11,7 @@ resource "azurerm_network_security_rule" "allow_azure_resources" {
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_ranges      = ["443"]
+  destination_port_range       = "*"
   source_address_prefix        = "*"
   destination_address_prefixes = local.azure_resources_cidr
   resource_group_name          = azurerm_resource_group.public.name
@@ -27,14 +27,33 @@ resource "azurerm_network_security_rule" "deny_all_outbound" {
   source_port_range           = "*"
   destination_port_range      = "*"
   source_address_prefix       = "*"
-  destination_address_prefix  = "Internet"
+  destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.public.name
   network_security_group_name = azurerm_network_security_group.public.name
 }
 
+# resource "azurerm_network_security_rule" "allow_dns_udp" {
+#   name                        = "AllowDNS"
+#   priority                    = 110
+#   direction                   = "Outbound"
+#   access                      = "Allow"
+#   protocol                    = "Udp"
+#   source_port_range           = "*"
+#   destination_port_range      = "53"
+#   source_address_prefix       = "*"
+#   destination_address_prefix  = "168.63.129.16"
+#   resource_group_name         = azurerm_resource_group.public.name
+#   network_security_group_name = azurerm_network_security_group.public.name
+# }
+
 locals {
   azure_resources_cidr = [
-    # azure devops cidr
+    "13.107.42.0/24",       # dev.azure.com
+    "13.107.6.0/24",        # vsblob.dev.azure.com
+    "13.107.9.0/24",        # artifacts
+    "52.239.192.0/19",      # Pipelines, agent pool endpoints
+    "168.63.129.16",         # Azure DNS / metadata
+    # azure devops cidr from JSON
     "20.37.158.0/23",
     "20.37.194.0/24",
     "20.39.13.0/26",
